@@ -1,0 +1,14 @@
+# Vagrant
+.vagrant/
+*.log
+
+# VirtualBox
+*.vbox-prev
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Any captured credentials or install artifacts pulled from VMs
+wazuh-passwords.txt
+*.tar

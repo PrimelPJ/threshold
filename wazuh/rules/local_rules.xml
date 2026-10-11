@@ -1,0 +1,78 @@
+<!--
+  local_rules.xml
+  Custom detection rules for brute force and password spraying against the
+  lab domain controller. These sit on top of Wazuh's built-in Windows
+  ruleset (which already parses event channel 4625 = failed logon and
+  4740 = account locked out).
+
+  Rule id ranges 100000+ are reserved for local rules.
+
+  Logon failure sub-status codes worth knowing:
+    0xC000006A  bad password
+    0xC0000064  user does not exist
+    0xC0000234  account locked out
+    0xC0000072  account disabled
+-->
+<group name="local,windows,authentication,bruteforce,">
+
+  <!-- Base: a single failed logon on a Windows host (4625).
+       Wazuh rule 60204 already matches Windows security events; we scope
+       to the failed-logon event id so our frequency rules have a clean parent. -->
+  <rule id="100100" level="3">
+    <if_sid>60204</if_sid>
+    <field name="win.system.eventID">^4625$</field>
+    <description>Windows: failed logon for user $(win.eventdata.targetUserName) from $(win.eventdata.ipAddress)</description>
+    <options>no_full_log</options>
+    <group>authentication_failed,</group>
+  </rule>
+
+  <!-- Brute force: many failures against ONE account in a short window.
+       frequency = how many matches, timeframe = seconds, same_field groups
+       them by the targeted username. -->
+  <rule id="100110" level="10" frequency="8" timeframe="120">
+    <if_matched_sid>100100</if_matched_sid>
+    <same_field>win.eventdata.targetUserName</same_field>
+    <description>Brute force: 8+ failed logons for $(win.eventdata.targetUserName) within 2 minutes</description>
+    <mitre>
+      <id>T1110.001</id>
+    </mitre>
+    <group>authentication_failures,bruteforce,</group>
+  </rule>
+
+  <!-- Password spray: many failures from ONE source IP across the window,
+       which usually means the same password tried against many accounts.
+       Grouped by source IP instead of username. -->
+  <rule id="100120" level="12" frequency="10" timeframe="120">
+    <if_matched_sid>100100</if_matched_sid>
+    <same_field>win.eventdata.ipAddress</same_field>
+    <description>Password spray: 10+ failed logons from $(win.eventdata.ipAddress) within 2 minutes</description>
+    <mitre>
+      <id>T1110.003</id>
+    </mitre>
+    <group>authentication_failures,password_spray,</group>
+  </rule>
+
+  <!-- Account lockout (4740): the lockout policy fired. High signal. -->
+  <rule id="100130" level="10">
+    <if_sid>60204</if_sid>
+    <field name="win.system.eventID">^4740$</field>
+    <description>Account $(win.eventdata.targetUserName) locked out (brute force lockout policy triggered)</description>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>account_lockout,bruteforce,</group>
+  </rule>
+
+  <!-- Escalation: a source IP that triggers the spray rule repeatedly.
+       This is the one wired to active response so repeat offenders get blocked. -->
+  <rule id="100140" level="13" frequency="2" timeframe="300">
+    <if_matched_sid>100120</if_matched_sid>
+    <same_field>win.eventdata.ipAddress</same_field>
+    <description>Sustained password spray from $(win.eventdata.ipAddress): blocking source</description>
+    <mitre>
+      <id>T1110.003</id>
+    </mitre>
+    <group>password_spray,active_response,</group>
+  </rule>
+
+</group>
