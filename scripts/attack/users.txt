@@ -6,3 +6,5 @@ rpatel
 svc_backup
 administrator
 guest
+svc_sql
+helpdesk
