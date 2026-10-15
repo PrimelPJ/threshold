@@ -12,3 +12,6 @@ Thumbs.db
 # Any captured credentials or install artifacts pulled from VMs
 wazuh-passwords.txt
 *.tar
+*.bak
+*.swp
+*~
