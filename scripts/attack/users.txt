@@ -8,3 +8,7 @@ administrator
 guest
 svc_sql
 helpdesk
+svc_web
+svc_monitor
+svc_deploy
+svc_scan
