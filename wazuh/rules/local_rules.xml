@@ -75,4 +75,18 @@
     <group>password_spray,active_response,</group>
   </rule>
 
+  <!-- Credential stuffing: same account targeted from many distinct IPs.
+       Attackers rotate source addresses to stay below per-IP thresholds;
+       grouping by username across a longer window surfaces this pattern. -->
+  <rule id="100150" level="11" frequency="6" timeframe="600">
+    <if_matched_sid>100100</if_matched_sid>
+    <same_field>win.eventdata.targetUserName</same_field>
+    <different_field>win.eventdata.ipAddress</different_field>
+    <description>Credential stuffing: 6+ failed logons for $(win.eventdata.targetUserName) from distinct source IPs</description>
+    <mitre>
+      <id>T1110.004</id>
+    </mitre>
+    <group>authentication_failures,credential_stuffing,</group>
+  </rule>
+
 </group>
