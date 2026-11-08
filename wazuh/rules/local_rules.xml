@@ -89,4 +89,18 @@
     <group>authentication_failures,credential_stuffing,</group>
   </rule>
 
+  <!-- Kerberoasting: service ticket (4769) requested with RC4-HMAC (0x17)
+       encryption. Modern domains negotiate AES; a downgrade to RC4 is the
+       canonical indicator that an attacker is requesting a crackable ticket. -->
+  <rule id="100160" level="12">
+    <if_sid>60204</if_sid>
+    <field name="win.system.eventID">^4769$</field>
+    <field name="win.eventdata.ticketEncryptionType">^0x17$</field>
+    <description>Kerberoasting: RC4-encrypted service ticket for $(win.eventdata.serviceName) requested by $(win.eventdata.targetUserName)</description>
+    <mitre>
+      <id>T1558.003</id>
+    </mitre>
+    <group>kerberoasting,lateral_movement,</group>
+  </rule>
+
 </group>
