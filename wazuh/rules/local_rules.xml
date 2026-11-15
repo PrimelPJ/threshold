@@ -103,4 +103,18 @@
     <group>kerberoasting,lateral_movement,</group>
   </rule>
 
+  <!-- AS-REP roasting: TGT request (4768) with RC4-HMAC (0x17) encryption.
+       Accounts with pre-authentication disabled issue a crackable ticket
+       without requiring the requester to prove knowledge of the password. -->
+  <rule id="100170" level="12">
+    <if_sid>60204</if_sid>
+    <field name="win.system.eventID">^4768$</field>
+    <field name="win.eventdata.ticketEncryptionType">^0x17$</field>
+    <description>AS-REP roasting: RC4-encrypted TGT issued for $(win.eventdata.targetUserName) without pre-authentication</description>
+    <mitre>
+      <id>T1558.004</id>
+    </mitre>
+    <group>asreproasting,lateral_movement,</group>
+  </rule>
+
 </group>

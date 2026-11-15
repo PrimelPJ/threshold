@@ -14,3 +14,6 @@ svc_deploy
 svc_scan
 svc_audit
 support
+svc_print
+svc_sccm
+svc_rdp
