@@ -17,3 +17,7 @@ support
 svc_print
 svc_sccm
 svc_rdp
+svc_oracle
+svc_ldap
+svc_exchange
+svc_smtp
