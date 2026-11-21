@@ -117,4 +117,20 @@
     <group>asreproasting,lateral_movement,</group>
   </rule>
 
+  <!-- Pass-the-Hash: a successful NTLM network logon (4624, LogonType 3)
+       indicates lateral movement when NTLM is used instead of Kerberos.
+       Legitimate domain workstation access normally negotiates Kerberos;
+       NTLM network logons are typical of PtH tools like Mimikatz/pth-winexe. -->
+  <rule id="100180" level="11">
+    <if_sid>60204</if_sid>
+    <field name="win.system.eventID">^4624$</field>
+    <field name="win.eventdata.logonType">^3$</field>
+    <field name="win.eventdata.authenticationPackageName">^NTLM$</field>
+    <description>Pass-the-Hash: NTLM network logon for $(win.eventdata.targetUserName) from $(win.eventdata.ipAddress)</description>
+    <mitre>
+      <id>T1550.002</id>
+    </mitre>
+    <group>lateral_movement,pass_the_hash,</group>
+  </rule>
+
 </group>
