@@ -27,6 +27,19 @@ Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625} -MaxEvents 15 -Erro
         "{0}  user={1,-14} src={2}" -f $_.TimeCreated, $user, $ip
     }
 
+Write-Host "`n=== Last 10 NTLM network logons (4624 LogonType 3) ===" -ForegroundColor Cyan
+Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4624} -MaxEvents 50 -ErrorAction SilentlyContinue |
+    ForEach-Object {
+        $x = [xml]$_.ToXml()
+        $ltype = ($x.Event.EventData.Data | Where-Object { $_.Name -eq 'LogonType' })."#text"
+        $pkg   = ($x.Event.EventData.Data | Where-Object { $_.Name -eq 'AuthenticationPackageName' })."#text"
+        if ($ltype -eq '3' -and $pkg -eq 'NTLM') {
+            $user = ($x.Event.EventData.Data | Where-Object { $_.Name -eq 'TargetUserName' })."#text"
+            $ip   = ($x.Event.EventData.Data | Where-Object { $_.Name -eq 'IpAddress' })."#text"
+            "{0}  user={1,-14} src={2}" -f $_.TimeCreated, $user, $ip
+        }
+    } | Select-Object -First 10
+
 Write-Host "`n=== Firewall blocks placed by Wazuh active response ===" -ForegroundColor Cyan
 $fw = Get-NetFirewallRule -DisplayName "WAZUH-AR Block*" -ErrorAction SilentlyContinue
 if ($fw) { $fw | Select-Object DisplayName, Enabled, Action | Format-Table -AutoSize }
