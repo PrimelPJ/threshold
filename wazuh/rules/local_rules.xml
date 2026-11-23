@@ -133,4 +133,21 @@
     <group>lateral_movement,pass_the_hash,</group>
   </rule>
 
+  <!-- DCSync: directory replication rights exercised outside a domain controller.
+       Event 4662 fires when a directory object operation is performed; the GUID
+       1131f6ad-9c07-11d1-f79f-00c04fc2dcd2 (DS-Replication-Get-Changes-All) in
+       the properties field means the caller pulled all password attribute changes.
+       Legitimate callers are domain controllers; a workstation or Kali host doing
+       this is Mimikatz or Impacket secretsdump. Level 14 = critical. -->
+  <rule id="100190" level="14">
+    <if_sid>60204</if_sid>
+    <field name="win.system.eventID">^4662$</field>
+    <field name="win.eventdata.properties">1131f6ad-9c07-11d1-f79f-00c04fc2dcd2</field>
+    <description>DCSync: DS-Replication-Get-Changes-All exercised by $(win.eventdata.subjectUserName) — potential credential harvesting</description>
+    <mitre>
+      <id>T1003.006</id>
+    </mitre>
+    <group>credential_access,dcsync,</group>
+  </rule>
+
 </group>
