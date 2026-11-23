@@ -21,3 +21,5 @@ svc_oracle
 svc_ldap
 svc_exchange
 svc_smtp
+svc_dns
+svc_dhcp
